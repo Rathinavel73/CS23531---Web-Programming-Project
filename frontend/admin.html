@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Academic CGPA Evaluation</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">Academic Performance Evaluation System</h1>
+            <nav class="navbar">
+                <ul>
+                    <li><a href="index.html">Student Calculator</a></li>
+                    <li><a href="#admin">Admin Dashboard</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="admin">
+        <div class="container">
+            <h2>Admin Dashboard</h2>
+            <p>Manage Student Evaluations & CGPA Assessment</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container content">
+        
+        <!-- Admin Dashboard Section -->
+        <section class="section admin-section">
+            <h2>Batch Student Evaluation</h2>
+            
+            <div class="admin-container">
+                <!-- Control Buttons -->
+                <div class="admin-controls">
+                    <button class="btn btn-primary" onclick="loadStudentsList()">📊 View All Students</button>
+                    <button class="btn btn-secondary" onclick="exportResults()">⬇️ Export Results</button>
+                </div>
+
+                <!-- Add New Student Form -->
+                <div class="admin-form-section">
+                    <h3>➕ Add New Student & Evaluate</h3>
+                    <form id="adminForm" class="calc-form">
+                        <div class="form-group">
+                            <label for="adminStudentName">👤 Student Name:</label>
+                            <input type="text" id="adminStudentName" placeholder="Full name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="adminStudentNumber">🎓 Student Number:</label>
+                            <input type="text" id="adminStudentNumber" placeholder="Student ID" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="adminProgram">📚 Program:</label>
+                            <select id="adminProgram" required>
+                                <option value="">Select Program</option>
+                                <option value="BSCS">Bachelor of Science in Computer Science</option>
+                                <option value="BSENG">Bachelor of Science in Engineering</option>
+                                <option value="BAB">Bachelor of Arts in Business</option>
+                            </select>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="adminOverallCGPA">Overall CGPA:</label>
+                                <input type="number" id="adminOverallCGPA" min="0" max="4" step="0.01" placeholder="0.00 - 4.00" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="adminMajorCGPA">Major CGPA:</label>
+                                <input type="number" id="adminMajorCGPA" min="0" max="4" step="0.01" placeholder="0.00 - 4.00" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">✅ Add & Evaluate</button>
+                        <button type="reset" class="btn btn-secondary">🔄 Clear</button>
+                    </form>
+                </div>
+
+                <!-- Students List Display -->
+                <div id="adminResult" class="admin-result hidden">
+                    <h3>📋 Student Evaluation Records</h3>
+                    <div id="studentsList" class="students-grid"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="section" style="max-width: 1000px; margin: 0 auto;">
+            <h2>Dashboard Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>📊 Total Students</h4>
+                    <span id="totalStudents" style="font-size: 2rem; font-weight: bold; color: var(--accent-color);">0</span>
+                </div>
+                <div class="stat-card">
+                    <h4>✅ Good Standing</h4>
+                    <span id="goodStandingCount" style="font-size: 2rem; font-weight: bold; color: var(--success-color);">0</span>
+                </div>
+                <div class="stat-card">
+                    <h4>⚠️ Academic Warning</h4>
+                    <span id="warningCount" style="font-size: 2rem; font-weight: bold; color: var(--warning-color);">0</span>
+                </div>
+                <div class="stat-card">
+                    <h4>❌ Dismissed</h4>
+                    <span id="dismissedCount" style="font-size: 2rem; font-weight: bold; color: var(--danger-color);">0</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Academic Performance Evaluation System. Admin Dashboard.</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Initialize admin page with any saved students
+        window.addEventListener('load', function() {
+            updateStats();
+        });
+
+        // Update statistics
+        function updateStats() {
+            const totalStudents = studentRecords.length;
+            const goodStanding = studentRecords.filter(s => s.color === 'good').length;
+            const warning = studentRecords.filter(s => s.color === 'warning').length;
+            const dismissed = studentRecords.filter(s => s.color === 'dismissed').length;
+            
+            document.getElementById('totalStudents').textContent = totalStudents;
+            document.getElementById('goodStandingCount').textContent = goodStanding;
+            document.getElementById('warningCount').textContent = warning;
+            document.getElementById('dismissedCount').textContent = dismissed;
+        }
+
+        // Override admin form submission to update stats
+        const originalAdminForm = document.getElementById('adminForm');
+        originalAdminForm?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const studentName = document.getElementById('adminStudentName').value;
+            const studentNumber = document.getElementById('adminStudentNumber').value;
+            const program = document.getElementById('adminProgram').value;
+            const overallCGPA = parseFloat(document.getElementById('adminOverallCGPA').value);
+            const majorCGPA = parseFloat(document.getElementById('adminMajorCGPA').value);
+            
+            if (isNaN(overallCGPA) || isNaN(majorCGPA)) {
+                alert('Please enter valid CGPA values');
+                return;
+            }
+            
+            const result = determineStatus(overallCGPA, majorCGPA);
+            
+            const newStudent = {
+                name: studentName,
+                number: studentNumber,
+                program: program,
+                overallCGPA: overallCGPA,
+                majorCGPA: majorCGPA,
+                status: result.status,
+                color: result.color,
+                timestamp: new Date().toLocaleString()
+            };
+            
+            studentRecords.unshift(newStudent);
+            
+            this.reset();
+            alert(`Student ${studentName} has been added and evaluated!`);
+            updateStats();
+            
+            if (!document.getElementById('adminResult').classList.contains('hidden')) {
+                displayStudentsList();
+            }
+        });
+    </script>
+</body>
+</html>
